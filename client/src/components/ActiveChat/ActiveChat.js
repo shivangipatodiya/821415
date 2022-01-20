@@ -35,7 +35,7 @@ const ActiveChat = (props) => {
           />
           <Box className={classes.chatContainer}>
             <Messages
-              messages={conversation.messages.sort((a,b)=> moment(a.createdAt).diff(b.createdAt, "seconds"))
+              messages={conversation.messages.sort((a,b)=> moment(a.createdAt).diff(b.createdAt))
             }
               otherUser={conversation.otherUser}
               userId={user.id}
