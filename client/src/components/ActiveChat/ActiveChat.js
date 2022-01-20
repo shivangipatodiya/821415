@@ -3,7 +3,7 @@ import { makeStyles } from "@material-ui/core/styles";
 import { Box } from "@material-ui/core";
 import { Input, Header, Messages } from "./index";
 import { connect } from "react-redux";
-
+import moment from "moment";
 const useStyles = makeStyles(() => ({
   root: {
     display: "flex",
@@ -35,7 +35,8 @@ const ActiveChat = (props) => {
           />
           <Box className={classes.chatContainer}>
             <Messages
-              messages={conversation.messages}
+              messages={conversation.messages.sort((a,b)=> moment(a.createdAt).diff(b.createdAt, "seconds"))
+            }
               otherUser={conversation.otherUser}
               userId={user.id}
             />
@@ -56,9 +57,9 @@ const mapStateToProps = (state) => {
     user: state.user,
     conversation:
       state.conversations &&
-      state.conversations.find(
+      {...state.conversations.find(
         (conversation) => conversation.otherUser.username === state.activeConversation
-      )
+      )}
   };
 };
 
