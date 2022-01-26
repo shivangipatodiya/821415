@@ -4,6 +4,9 @@ import { BadgeAvatar, ChatContent } from "../Sidebar";
 import { makeStyles } from "@material-ui/core/styles";
 import { setActiveChat } from "../../store/activeConversation";
 import { connect } from "react-redux";
+import { changeReadStatus } from "../../store/utils/thunkCreators";
+import Badge from "@material-ui/core/Badge";
+import { unreadCount } from "../../helpers/chat";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -16,16 +19,20 @@ const useStyles = makeStyles((theme) => ({
     "&:hover": {
       cursor: "grab"
     }
+  },
+  badge: {
+    marginRight: 25
   }
 }));
 
 const Chat = (props) => {
   const classes = useStyles();
-  const { conversation } = props;
+  const { conversation, changeReadStatus } = props;
   const { otherUser } = conversation;
 
   const handleClick = async (conversation) => {
     await props.setActiveChat(conversation.otherUser.username);
+    await changeReadStatus(conversation.id);
   };
 
   return (
@@ -37,6 +44,11 @@ const Chat = (props) => {
         sidebar={true}
       />
       <ChatContent conversation={conversation} />
+      <Badge
+        className={classes.badge}
+        color="primary"
+        badgeContent={unreadCount(conversation)}
+      ></Badge>
     </Box>
   );
 };
@@ -45,6 +57,9 @@ const mapDispatchToProps = (dispatch) => {
   return {
     setActiveChat: (id) => {
       dispatch(setActiveChat(id));
+    },
+    changeReadStatus: (conversationId) => {
+      dispatch(changeReadStatus(conversationId));
     }
   };
 };

@@ -26,7 +26,7 @@ router.post("/", async (req, res, next) => {
       // create conversation
       conversation = await Conversation.create({
         user1Id: senderId,
-        user2Id: recipientId,
+        user2Id: recipientId
       });
       if (onlineUsers.includes(sender.id)) {
         sender.online = true;
@@ -35,9 +35,32 @@ router.post("/", async (req, res, next) => {
     const message = await Message.create({
       senderId,
       text,
-      conversationId: conversation.id,
+      conversationId: conversation.id
     });
     res.json({ message, sender });
+  } catch (error) {
+    next(error);
+  }
+});
+router.put("/", async (req, res, next) => {
+  try {
+    if (!req.user) {
+      return res.sendStatus(401);
+    }
+    const { conversationId, read } = req.body;
+
+    const message = await Message.findAll({
+      where: { conversationId, read: false }
+    });
+
+    await message.map(async (msg) => {
+      msg.update({
+        read
+      });
+      await msg.save();
+    });
+
+    return res.json({ messageUpdated: true });
   } catch (error) {
     next(error);
   }

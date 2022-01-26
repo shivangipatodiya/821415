@@ -3,8 +3,9 @@ import store from "./store";
 import {
   setNewMessage,
   removeOfflineUser,
-  addOnlineUser,
+  addOnlineUser
 } from "./store/conversations";
+import { changeReadStatus } from "./store/utils/thunkCreators";
 
 const socket = io(window.location.origin);
 
@@ -19,7 +20,17 @@ socket.on("connect", () => {
     store.dispatch(removeOfflineUser(id));
   });
   socket.on("new-message", (data) => {
-    store.dispatch(setNewMessage(data.message, data.sender));
+    const state = store.getState();
+    const convo = state.conversations.find(
+      (convo) => convo.otherUser.username === state.activeConversation
+    );
+    if (convo && convo.otherUser.id === data.message.senderId) {
+      store.dispatch(changeReadStatus(convo.id));
+    }
+
+    store.dispatch(
+      setNewMessage(data.message, data.sender, state.activeConversation)
+    );
   });
 });
 
