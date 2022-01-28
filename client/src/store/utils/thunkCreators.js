@@ -1,5 +1,6 @@
 import axios from "axios";
 import socket from "../../socket";
+import store from "../";
 import {
   gotConversations,
   addConversation,
@@ -130,4 +131,14 @@ export const changeReadStatus = (conversationId) => async (dispatch) => {
   } catch (error) {
     console.error(error);
   }
+};
+export const processNewMessage = (data) => (dispatch) => {
+  const state = store.getState();
+  const convo = state.conversations.find(
+    (convo) => convo.otherUser.username === state.activeConversation
+  );
+  if (convo && convo.otherUser.id === data.message.senderId) {
+    dispatch(changeReadStatus(data.message.conversationId));
+  }
+  dispatch(setNewMessage(data.message, data.sender, state.activeConversation));
 };
