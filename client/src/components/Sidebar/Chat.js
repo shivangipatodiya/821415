@@ -31,7 +31,7 @@ const Chat = (props) => {
 
   const handleClick = async (conversation) => {
     await props.setActiveChat(conversation.otherUser.username);
-    await changeReadStatus(conversation.id);
+    await changeReadStatus(conversation.id, user.id);
   };
 
   return (
@@ -64,8 +64,8 @@ const mapDispatchToProps = (dispatch) => {
     setActiveChat: (id) => {
       dispatch(setActiveChat(id));
     },
-    changeReadStatus: (conversationId) => {
-      dispatch(changeReadStatus(conversationId));
+    changeReadStatus: (conversationId, userId) => {
+      dispatch(changeReadStatus(conversationId, userId));
     }
   };
 };

@@ -69,10 +69,10 @@ export const addConversation = (recipientId, newMessage) => {
   };
 };
 
-export const updateMessage = (conversationId) => {
+export const updateMessage = (conversationId, userId) => {
   return {
     type: UPDATE_READ_STATUS,
-    payload: { conversationId }
+    payload: { conversationId, userId }
   };
 };
 
@@ -101,7 +101,11 @@ const reducer = (state = [], action) => {
         action.payload.newMessage
       );
     case UPDATE_READ_STATUS:
-      return changeMessageStatus(state, action.payload.conversationId);
+      return changeMessageStatus(
+        state,
+        action.payload.conversationId,
+        action.payload.userId
+      );
     default:
       return state;
   }

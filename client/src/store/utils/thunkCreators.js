@@ -93,6 +93,10 @@ const sendMessage = (data, body) => {
   });
 };
 
+const updateMessageReadByReceiver = (conversationId, userId) => {
+  socket.emit("message-read-by-receiver", { conversationId, userId });
+};
+
 // message format to send: {recipientId, text, conversationId}
 // conversationId will be set to null if its a brand new conversation
 export const postMessage = (body) => async (dispatch) => {
@@ -120,18 +124,20 @@ export const searchUsers = (searchTerm) => async (dispatch) => {
   }
 };
 
-export const changeReadStatus = (conversationId) => async (dispatch) => {
-  try {
-    if (!conversationId) {
-      return;
-    }
-    await axios.put(`/api/messages`, { conversationId, read: true });
+export const changeReadStatus =
+  (conversationId, userId) => async (dispatch) => {
+    try {
+      if (!conversationId) {
+        return;
+      }
+      await axios.put(`/api/messages`, { conversationId, read: true });
 
-    dispatch(updateMessage(conversationId));
-  } catch (error) {
-    console.error(error);
-  }
-};
+      dispatch(updateMessage(conversationId, userId));
+      updateMessageReadByReceiver(conversationId, userId);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 export const processNewMessage = (data) => (dispatch) => {
   const state = store.getState();
   const convo = state.conversations.find(
@@ -141,4 +147,14 @@ export const processNewMessage = (data) => (dispatch) => {
     dispatch(changeReadStatus(data.message.conversationId));
   }
   dispatch(setNewMessage(data.message, data.sender, state.activeConversation));
+};
+
+export const processMessageReadByReceiver = (data) => (dispatch) => {
+  const state = store.getState();
+  const convo = state.conversations.find(
+    (aConvo) => aConvo.otherUser.username === state.activeConversation
+  );
+  if (convo && convo.id === data.conversationId) {
+    dispatch(updateMessage(data.conversationId, data.userId, true));
+  }
 };

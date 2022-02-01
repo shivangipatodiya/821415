@@ -64,7 +64,7 @@ router.put("/", async (req, res, next) => {
     const { conversationId, read } = req.body;
 
     await Message.update(
-      { read: true },
+      { read },
       {
         where: { conversationId, read: false, senderId: { [Op.ne]: userId } }
       }
