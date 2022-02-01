@@ -130,7 +130,7 @@ export const changeReadStatus =
       if (!conversationId) {
         return;
       }
-      await axios.put(`/api/messages`, { conversationId, read: true });
+      await axios.put(`/api/messages`, { conversationId });
 
       dispatch(updateMessage(conversationId, userId));
       updateMessageReadByReceiver(conversationId, userId);
@@ -146,7 +146,7 @@ export const processNewMessage = (data) => (dispatch) => {
   if (convo && convo.otherUser.id === data.message.senderId) {
     dispatch(changeReadStatus(data.message.conversationId));
   }
-  dispatch(setNewMessage(data.message, data.sender, state.activeConversation));
+  dispatch(setNewMessage(data.message, data.sender));
 };
 
 export const processMessageReadByReceiver = (data) => (dispatch) => {

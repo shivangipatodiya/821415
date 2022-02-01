@@ -59,12 +59,12 @@ router.put("/", async (req, res, next) => {
     });
 
     if (!targetUser) {
-      return res.sendStatus(401);
+      return res.sendStatus(403);
     }
-    const { conversationId, read } = req.body;
+    const { conversationId } = req.body;
 
     await Message.update(
-      { read },
+      { read: true },
       {
         where: { conversationId, read: false, senderId: { [Op.ne]: userId } }
       }
