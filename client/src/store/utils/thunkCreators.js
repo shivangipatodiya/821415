@@ -1,10 +1,12 @@
 import axios from "axios";
 import socket from "../../socket";
+import store from "../";
 import {
   gotConversations,
   addConversation,
   setNewMessage,
   setSearchedUsers,
+  updateMessage
 } from "../conversations";
 import { gotUser, setFetchingStatus } from "../user";
 
@@ -87,14 +89,17 @@ const sendMessage = (data, body) => {
   socket.emit("new-message", {
     message: data.message,
     recipientId: body.recipientId,
-    sender: data.sender,
+    sender: data.sender
   });
+};
+
+const updateMessageReadByReceiver = (conversationId, userId) => {
+  socket.emit("message-read-by-receiver", { conversationId, userId });
 };
 
 // message format to send: {recipientId, text, conversationId}
 // conversationId will be set to null if its a brand new conversation
 export const postMessage = (body) => async (dispatch) => {
-  
   try {
     const data = await saveMessage(body);
 
@@ -116,5 +121,40 @@ export const searchUsers = (searchTerm) => async (dispatch) => {
     dispatch(setSearchedUsers(data));
   } catch (error) {
     console.error(error);
+  }
+};
+
+export const changeReadStatus =
+  (conversationId, userId) => async (dispatch) => {
+    try {
+      if (!conversationId) {
+        return;
+      }
+      await axios.put(`/api/messages`, { conversationId });
+
+      dispatch(updateMessage(conversationId, userId));
+      updateMessageReadByReceiver(conversationId, userId);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+export const processNewMessage = (data) => (dispatch) => {
+  const state = store.getState();
+  const convo = state.conversations.find(
+    (convo) => convo.otherUser.username === state.activeConversation
+  );
+  if (convo && convo.otherUser.id === data.message.senderId) {
+    dispatch(changeReadStatus(data.message.conversationId));
+  }
+  dispatch(setNewMessage(data.message, data.sender));
+};
+
+export const processMessageReadByReceiver = (data) => (dispatch) => {
+  const state = store.getState();
+  const convo = state.conversations.find(
+    (aConvo) => aConvo.otherUser.username === state.activeConversation
+  );
+  if (convo && convo.id === data.conversationId) {
+    dispatch(updateMessage(data.conversationId, data.userId, true));
   }
 };

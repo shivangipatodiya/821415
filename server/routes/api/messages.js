@@ -1,4 +1,5 @@
 const router = require("express").Router();
+const { Op } = require("sequelize");
 const { Conversation, Message } = require("../../db/models");
 const onlineUsers = require("../../onlineUsers");
 
@@ -26,7 +27,7 @@ router.post("/", async (req, res, next) => {
       // create conversation
       conversation = await Conversation.create({
         user1Id: senderId,
-        user2Id: recipientId,
+        user2Id: recipientId
       });
       if (onlineUsers.includes(sender.id)) {
         sender.online = true;
@@ -35,9 +36,41 @@ router.post("/", async (req, res, next) => {
     const message = await Message.create({
       senderId,
       text,
-      conversationId: conversation.id,
+      conversationId: conversation.id
     });
     res.json({ message, sender });
+  } catch (error) {
+    next(error);
+  }
+});
+router.put("/", async (req, res, next) => {
+  try {
+    if (!req.user) {
+      return res.sendStatus(401);
+    }
+    const userId = req.user.id;
+    const targetUser = await Conversation.findOne({
+      where: {
+        [Op.or]: {
+          user1Id: userId,
+          user2Id: userId
+        }
+      }
+    });
+
+    if (!targetUser) {
+      return res.sendStatus(403);
+    }
+    const { conversationId } = req.body;
+
+    await Message.update(
+      { read: true },
+      {
+        where: { conversationId, read: false, senderId: { [Op.ne]: userId } }
+      }
+    );
+
+    return res.json({ messageUpdated: true });
   } catch (error) {
     next(error);
   }

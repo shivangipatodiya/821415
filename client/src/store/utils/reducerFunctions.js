@@ -5,17 +5,30 @@ export const addMessageToStore = (state, payload) => {
     const newConvo = {
       id: message.conversationId,
       otherUser: sender,
-      messages: [message],
+      messages: [message]
     };
     newConvo.latestMessageText = message.text;
+    let messagesReverse = [...newConvo.messages];
+    const lastRead = messagesReverse
+      .reverse()
+      .find((msg) => msg.read && msg.senderId !== newConvo.otherUser.id);
+    newConvo.lastMessageReadByOtherUser = message.read ? message : lastRead;
+    newConvo.unreadMessagesCount = 1;
     return [newConvo, ...state];
   }
 
   return state.map((convo) => {
     if (convo.id === message.conversationId) {
-      const convoCopy = {...convo};
+      const convoCopy = { ...convo };
       convoCopy.messages.push(message);
       convoCopy.latestMessageText = message.text;
+      let messagesReverse = [...convoCopy.messages];
+      const lastRead = messagesReverse
+        .reverse()
+        .find((msg) => msg.read && msg.senderId !== convoCopy.otherUser.id);
+
+      convoCopy.lastMessageReadByOtherUser = message.read ? message : lastRead;
+      convoCopy.unreadMessagesCount += 1;
       return convoCopy;
     } else {
       return convo;
@@ -70,10 +83,38 @@ export const addSearchedUsersToStore = (state, users) => {
 export const addNewConvoToStore = (state, recipientId, message) => {
   return state.map((convo) => {
     if (convo.otherUser.id === recipientId) {
-      const convoCopy = {...convo};
+      const convoCopy = { ...convo };
       convoCopy.id = message.conversationId;
       convoCopy.messages.push(message);
       convoCopy.latestMessageText = message.text;
+      convoCopy.lastMessageReadByOtherUser = message.read ? message : null;
+      return convoCopy;
+    } else {
+      return convo;
+    }
+  });
+};
+
+export const changeMessageStatus = (state, conversationId, userId) => {
+  return state.map((convo) => {
+    if (convo.id === conversationId) {
+      const convoCopy = { ...convo };
+      convoCopy.messages = convoCopy.messages.map((msg) => {
+        if (msg.senderId !== userId) {
+          return {
+            ...msg,
+            read: true
+          };
+        } else {
+          return msg;
+        }
+      });
+      const messagesReverse = [...convoCopy.messages];
+      const lastRead = messagesReverse
+        .reverse()
+        .find((msg) => msg.read && msg.senderId !== convoCopy.otherUser.id);
+      convoCopy.lastMessageReadByOtherUser = lastRead;
+      convoCopy.unreadMessagesCount = 0;
       return convoCopy;
     } else {
       return convo;
