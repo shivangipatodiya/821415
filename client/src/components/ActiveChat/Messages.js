@@ -4,12 +4,8 @@ import { SenderBubble, OtherUserBubble } from "../ActiveChat";
 import moment from "moment";
 
 const Messages = (props) => {
-  const { messages, otherUser, userId } = props;
-  const messageByOtherUser = messages.filter((msg) => {
-    return msg.senderId === userId && msg.read;
-  });
-  const lastMessageByOtherUser =
-    messageByOtherUser[messageByOtherUser.length - 1];
+  const { messages, otherUser, userId, lastMessageReadByOtherUser } = props;
+  
   return (
     <Box>
       {messages.map((message) => {
@@ -18,7 +14,7 @@ const Messages = (props) => {
         return message.senderId === userId ? (
           <SenderBubble
             key={message.id}
-            lastMessageByOtherUser={lastMessageByOtherUser}
+            lastMessageReadByOtherUser={lastMessageReadByOtherUser}
             id={message.id}
             read={message.read}
             text={message.text}

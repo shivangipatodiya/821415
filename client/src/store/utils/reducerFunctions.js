@@ -8,6 +8,11 @@ export const addMessageToStore = (state, payload) => {
       messages: [message]
     };
     newConvo.latestMessageText = message.text;
+    let messagesReverse = [...newConvo.messages];
+    const lastRead = messagesReverse
+      .reverse()
+      .find((msg) => msg.read && msg.senderId !== newConvo.otherUser.id);
+    newConvo.lastMessageReadByOtherUser = message.read ? message : lastRead;
     newConvo.unreadMessagesCount = 1;
     return [newConvo, ...state];
   }
@@ -17,6 +22,12 @@ export const addMessageToStore = (state, payload) => {
       const convoCopy = { ...convo };
       convoCopy.messages.push(message);
       convoCopy.latestMessageText = message.text;
+      let messagesReverse = [...convoCopy.messages];
+      const lastRead = messagesReverse
+        .reverse()
+        .find((msg) => msg.read && msg.senderId !== convoCopy.otherUser.id);
+
+      convoCopy.lastMessageReadByOtherUser = message.read ? message : lastRead;
       convoCopy.unreadMessagesCount += 1;
       return convoCopy;
     } else {
@@ -76,6 +87,7 @@ export const addNewConvoToStore = (state, recipientId, message) => {
       convoCopy.id = message.conversationId;
       convoCopy.messages.push(message);
       convoCopy.latestMessageText = message.text;
+      convoCopy.lastMessageReadByOtherUser = message.read ? message : null;
       return convoCopy;
     } else {
       return convo;
@@ -97,6 +109,11 @@ export const changeMessageStatus = (state, conversationId, userId) => {
           return msg;
         }
       });
+      const messagesReverse = [...convoCopy.messages];
+      const lastRead = messagesReverse
+        .reverse()
+        .find((msg) => msg.read && msg.senderId !== convoCopy.otherUser.id);
+      convoCopy.lastMessageReadByOtherUser = lastRead;
       convoCopy.unreadMessagesCount = 0;
       return convoCopy;
     } else {
